@@ -673,7 +673,319 @@ p6 <- train %>% group_by(ps_car_03_cat, target) %>%
 layout <- matrix(c(1,2,3,4,5,6), 2,3, byrow = T)
 multiplot(p1, p2, p3, p4, p5, p6, layout = layout) # ps_ind_05를 보면 2번 카테고리가 많은 영향을 주는것을 볼 수 있다.
 
+# cat(categorial) 형태의 변수들이 보험료를 얼마나 청구하는지 확인
 
+p1 <- train %>% group_by(ps_car_04_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_04_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_04_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_04_cat", y = "Claims [%]")
+
+p2 <- train %>% group_by(ps_car_05_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_05_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_05_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_05_cat", y = "Claims [%]")
+
+p3 <- train %>% group_by(ps_car_06_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_06_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_06_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_06_cat", y = "Claims [%]")
+
+p4 <- train %>% group_by(ps_car_07_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_07_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_07_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_07_cat", y = "Claims [%]")
+
+p5 <- train %>% group_by(ps_car_08_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_08_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_08_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_08_cat", y = "Claims [%]")
+
+p6 <- train %>% group_by(ps_car_09_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_09_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_09_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_09_cat", y = "Claims [%]")
+
+p7 <- train %>% group_by(ps_car_10_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_10_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_10_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_10_cat", y = "Claims [%]")
+
+p8 <- train %>% group_by(ps_car_11_cat, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(reorder(ps_car_11_cat, -frac_claim, FUN = max), frac_claim, fill = ps_car_11_cat)) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "gray30") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_11_cat", y = "Claims [%]")
+
+layout <- matrix(c(1,2,3,4,5,6,7,8), 2,4, byrow = T)
+multiplot(p1,p2,p3,p4,p5,p6,p7,p8, layout = layout)
+
+# Integel features
+p1 <- train %>% group_by(ps_ind_01, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_ind_01, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "ps_ind_01", y = "Claims [%]")
+
+p2 <- train %>% group_by(ps_ind_03, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_ind_03, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "ps_ind_03", y = "Claims [%]")
+
+p3 <- train %>% group_by(ps_ind_14, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_ind_14, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "ps_ind_14", y = "Claims [%]")
+
+p4 <- train %>% group_by(ps_ind_15, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_ind_15, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "ps_ind_15", y = "Claims [%]")
+
+p5 <- train %>% filter(!is.na(ps_car_11)) %>%
+  group_by(ps_car_11, target) %>% count() %>%
+  spread(target, n, fill = 0) %>% 
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_car_11, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "ps_car_11", y = "Claims [%]")
+
+layout <- matrix(c(1,1,2,2,3,4,4,5), 2,4 , byrow = T)
+multiplot(p1,p2,p3,p4,p5, layout = layout)
+
+p1 <- train %>% group_by(ps_calc_04, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_04, frac_claim)) +
+  geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_04", y = "Claims[%]")
+
+p2 <- train %>% filter(ps_calc_05 < 6) %>%
+  group_by(ps_calc_05, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_05, frac_claim)) +
+  geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_05", y = "Claims[%]")
+
+p3 <- train %>% filter(ps_calc_06 > 2) %>% # ps_calc_06 <= 2 인 데이터 수가 139개로 매우 작음.
+  group_by(ps_calc_06, target) %>% 
+  count() %>%
+  spread(target, n, fill = 0) %>% 
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`, (`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`, (`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_06, frac_claim)) +
+  geom_point(color = "blue") + geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_06", y = "Claims [%]")
+
+p4 <- train %>% filter(ps_calc_07 < 8) %>%
+  group_by(ps_calc_07, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_07, frac_claim)) +
+  geom_point(color = "blue") + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_07", y = "Claims [%]")
+
+p5 <- train %>% filter(ps_calc_08 > 2) %>%
+  group_by(ps_calc_08, target) %>%
+  count() %>% spread(target, n, fill = 0) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_08, frac_claim)) +
+  geom_point(color = "blue") + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_08", y = "Claims [%]")
+
+p6 <- train %>% group_by(ps_calc_09, target) %>%
+  count() %>% spread(target, n, fill = 0) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_09, frac_claim)) +
+  geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_09", y = "Claims [%]")
+
+p7 <- train %>% ggplot(aes(ps_calc_10, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.4) + theme(legend.position = "none") # bw = bandwidth
+
+p8 <- train %>% ggplot(aes(ps_calc_11, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.4) + theme(legend.position = "none")
+
+p9 <- train %>% filter(ps_calc_12 < 9) %>%
+  group_by(ps_calc_12, target) %>% count() %>%
+  spread(target, n, fill = 0) %>% 
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_12, frac_claim)) +
+  geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") +
+  labs(x = "ps_calc_12", y = "Claims [%]")
+
+p10 <- train %>% filter(ps_calc_13 < 12) %>%
+  group_by(ps_calc_13, target) %>%
+  count() %>% spread(target, n, fill = 0) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ggplot(aes(ps_calc_13, frac_claim)) +
+  geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") + 
+  labs(x = "ps_calc_13", y = "Claims [%]")
+
+p11 <- train %>% ggplot(aes(ps_calc_14, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.4)
+
+layout <- matrix(c(1,2,3,4,5,6,7,8,9,10,11,11),3,4, byrow = T)
+multiplot(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, layout = layout)
+
+# Float features 
+p1 <- train %>% ggplot(aes(ps_reg_01, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p2 <- train %>% ggplot(aes(ps_reg_02, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p3 <- train %>% ggplot(aes(ps_reg_03, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p4 <- train %>% ggplot(aes(ps_calc_01, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p5 <- train %>% ggplot(aes(ps_calc_02, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p6 <- train %>% ggplot(aes(ps_calc_03, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+layout <- matrix(c(1,2,3,4,5,6), 2,3, byrow = T)
+multiplot(p1, p2, p3, p4, p5, p6, layout = layout)
+
+p1 <- train %>% ggplot(aes(ps_car_12, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p2 <- train %>% ggplot(aes(ps_car_13, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p3 <- train %>% ggplot(aes(ps_car_14, fill = target)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p4 <- train %>% ggplot(aes(ps_car_15, fill = target)) + 
+  geom_density(alpha = 0.5, bw = 0.5) +
+  theme(legend.position = "none")
+
+layout <- matrix(c(1,2,3,4),2,2, byrow =T)
+multiplot(p1,p2,p3,p4, layout = layout)
+
+# Multi-features comparisons
+train %>% select(-starts_with("ps_calc"), -ps_ind_10_bin, -ps_ind_11_bin, -ps_car_10_cat, -id) %>%
+  mutate_at(vars(ends_with("cat")), funs(as.integer)) %>% 
+  mutate_at(vars(ends_with("bin")), funs(as.integer)) %>%
+  mutate(target = as.integer(target)) %>% 
+  cor(use="complete.obs", method = "spearman") %>%
+  corrplot(type = "lower", tl.col = "black", diag = F)
 
 
 
