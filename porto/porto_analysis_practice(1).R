@@ -987,6 +987,216 @@ train %>% select(-starts_with("ps_calc"), -ps_ind_10_bin, -ps_ind_11_bin, -ps_ca
   cor(use="complete.obs", method = "spearman") %>%
   corrplot(type = "lower", tl.col = "black", diag = F)
 
+# highly correlated features
+train %>% select(ps_ind_12_bin, ps_ind_14, ps_ind_16_bin, ps_ind_17_bin, ps_ind_18_bin, ps_reg_02, ps_reg_03,
+                 ps_car_12, ps_car_13, ps_car_14, ps_car_15, ps_car_02_cat, ps_car_04_cat) %>%
+  mutate_at(vars(ends_with("cat")), funs(as.integer)) %>%
+  mutate_at(vars(ends_with("bin")), funs(as.integer)) %>%
+  cor(use = "complete.obs", method = "spearman") %>%
+  corrplot(type = "lower", tl.col = "black", diag = F, method = "number") # diag = F : 대각행렬 제외
+
+# Alluvial diagram for key features
+allu_train <- train %>% filter(!is.na(ps_car_02_cat)) %>%
+  filter(ps_car_04_cat %in% c("0","1","2","8","9")) %>%
+  group_by(target, ps_ind_17_bin, ps_ind_18_bin, ps_car_02_cat, ps_car_04_cat) %>%
+  count() %>%
+  ungroup
+
+# 표의 넓이가 넓을수록 빈도수가 많다는 뜻.
+alluvial(allu_train %>% select(-n), freq = allu_train$n, border = NA,
+         col = ifelse(allu_train$target == 0, "red", "blue"),
+         cex = 0.75, hide = allu_train$n < 200,
+         ordering = list(order(allu_train$target == 1),
+                         NULL,
+                         NULL,
+                         NULL,
+                         NULL))
+
+# Pairwise relationship
+p1 <- train %>% ggplot(aes(ps_ind_14, fill = ps_ind_12_bin)) +
+  geom_bar(position = "fill")
+
+p2 <- train %>% ggplot(aes(ps_ind_16_bin, ps_ind_18_bin)) +
+  geom_count(color = "orange")
+
+p3 <- train %>% ggplot(aes(ps_ind_16_bin, ps_ind_17_bin)) +
+  geom_count(color = "orange")
+
+p4 <- train %>% ggplot(aes(ps_reg_02, ps_reg_03)) +
+  geom_point() +
+  geom_smooth(method = "gam", color = "dark green") # gam : 추세선 그리는 방
+
+p5 <- train %>% ggplot(aes(ps_car_12, ps_car_13)) +
+  geom_point() +
+  geom_smooth(method = "gam", color = "red")
+
+p6 <- train %>% ggplot(aes(ps_car_12, ps_car_14)) +
+  geom_point() +
+  geom_smooth(method = "gam", color = "red")
+
+layout <- matrix(c(1,2,3,4,5,6),2,3, byrow = T)
+multiplot(p1,p2,p3,p4,p5,p6, layout = layout)
+
+# Interactive multi-dimensional relations
+set.seed(4321)
+train %>% filter(!is.na(ps_car_12) & !is.na(ps_car_13) & !is.na(ps_car_14)) %>%
+  select(ps_car_12, ps_car_13, ps_car_14, target) %>% 
+  sample_n(5e4) %>%
+  plot_ly(x = ~ps_car_12, y = ~ps_car_13, z = ~ps_car_14, color = ~target,
+          colors = c('#BF382A', '#0C4B8E'), text = ~paste('ps_car_12:', ps_car_12,
+                                                          '<br>ps_car_13:', ps_car_13,
+                                                          '<br>ps_car_14:', ps_car_14,
+                                                          '<br>Target:', target)) %>%
+  add_markers() %>%
+  layout(title = "'Car' group correlations and target impact",
+         scene = list(xaxis = list(title = 'ps_car_12'),
+                      yaxis = list(title = 'ps_car_13'),
+                      zaxis = list(title = 'ps_car_14')))
+
+train %>% ggplot(aes(ps_car_14, reorder(ps_ind_14, -ps_car_14, FUN = median), fill = as.factor(ps_ind_14))) +
+  geom_density_ridges() + labs(y = "ps_ind_14") +
+  theme(legend.position = "none", plot.title = element_text(size = 11)) + 
+  facet_grid(ps_ind_16_bin ~ target) + 
+  ggtitle("Target (left/right) vs ps_ind_16_bin (top/bottom) for ps_car_14 (x) vs ps_ind_14 (y, col)")
+
+p1 <- train %>% ggplot(aes(ps_car_14, reorder(ps_car_11, -ps_car_14, FUN = median), fill = as.factor(ps_car_11))) +
+  geom_density_ridges() +
+  labs(y = "ps_car_11") + theme(legend.position = "none")
+
+p2 <- train %>% ggplot(aes(ps_car_14, reorder(ps_ind_01, -ps_car_14, FUN = median), fill = as.factor(ps_ind_01))) +
+  geom_density_ridges() + labs(y = "ps_ind_01") +
+  theme(legend.position = "none")
+
+p3 <- train %>% ggplot(aes(ps_car_14, reorder(ps_ind_03, -ps_car_14, FUN = median), fill = as.factor(ps_ind_03))) +
+  geom_density_ridges() + labs(y = "ps_ind_03") +
+  theme(legend.position = "none")
+
+p4 <- train %>% ggplot(aes(ps_car_14, reorder(ps_ind_15, -ps_car_14, FUN = median), fill = as.factor(ps_ind_15))) +
+  geom_density_ridges() + labs(y = "ps_ind_15") +
+  theme(legend.position = "none")
+
+layout <- matrix(c(1,2,3,4), 2,2, byrow = T)
+multiplot(p1,p2,p3,p4, layout = layout)
+
+# number of NAs
+nano <- combine %>% is.na() %>% rowSums() %>% as.integer()
+
+# Sum up "ind" binary columns
+bin_ind <- combine %>% select(ends_with("bin")) %>% select(starts_with("ps_ind")) %>%
+  rowSums() %>% as.integer()
+
+# Sum up "calc" binary columns
+bin_calc <- combine %>% select(ends_with("bin")) %>% select(starts_with("ps_calc")) %>%
+  rowSums() %>% as.integer()
+
+bins <- combine %>% select(ends_with("bin")) %>%
+  select(starts_with("ps_ind")) %>% mutate_all(funs(as.integer))
+
+ref_bin <- bins %>% summarise_all(median, na.rm = T)
+ref_bin <- ref_bin[rep(1, nrow(combine)),]
+diff_ind <- rowSums(abs(bins - ref_bin))
+
+bins <- combine %>% select(ends_with("bin")) %>%
+  select(starts_with("ps_calc")) %>% mutate_all(funs(as.integer))
+
+ref_bin <- bins %>% summarise_all(median, na.rm = T)
+ref_bin <- ref_bin[rep(1, nrow(combine)),]
+diff_calc <- rowSums(abs(bins - ref_bin))
+
+# Apply changes to combine frame
+combine <- combine %>% mutate(nano = nano, bin_ind = bin_ind, bin_calc = bin_calc,
+                              diff_ind = diff_ind, diff_calc = diff_calc)
+
+# Split into train vs test
+train <- combine %>% filter(dset == "train")
+test <- combine %>% filter(dset == "test")
+
+p1 <- train %>% ggplot(aes(nano, fill = as.factor(nano))) +
+  geom_bar() + scale_y_log10() + theme(legend.position = "none") +
+  labs(x = "number of NAs")
+
+p2 <- train %>% group_by(nano, target) %>%
+  count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ungroup() %>%
+  ggplot(aes(nano, frac_claim)) + geom_point(color = "red") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "Number of NAs", y = "Claims [%]") +
+  facet_zoom(x = nano < 5, y = frac_claim < 10)
+
+layout <- matrix(c(1,2), 2,1, byrow = T)
+multiplot(p1,p2, layout = layout)
+
+p1 <- train %>% ggplot(aes(bin_ind, fill = as.factor(bin_ind))) +
+  geom_bar() + scale_y_log10() +
+  theme(legend.position = "none") + labs(x = "Sum of binary 'ind' features")
+
+p2 <- train %>% filter(bin_ind < 6) %>%
+  group_by(bin_ind, target) %>% count() %>% spread(target, n) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ungroup() %>%
+  ggplot(aes(bin_ind, frac_claim)) +
+  geom_point(color = "orange") + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "Sum of binary 'ind' features ", y = "Claims [%]")
+
+p3 <- train %>% ggplot(aes(bin_calc, fill = as.factor(bin_calc))) +
+  geom_bar() + scale_y_log10() + theme(legend.position = "none") +
+  labs(x = "Sum of binary 'calc' features")
+
+p4 <- train %>% filter(bin_calc < 6) %>% group_by(bin_calc, target) %>%
+  count() %>% spread(target, n) %>% 
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ungroup() %>%
+  ggplot(aes(bin_calc, frac_claim)) + geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "blue") +
+  theme(legend.position = "none") + labs(x = "Sum of binary 'calc' features", y = "Claims [%]")
+
+layout <- matrix(c(1,2,3,4), 2,2, byrow = T)
+multiplot(p1,p2,p3,p4,layout = layout)
+
+p1 <- train %>% ggplot(aes(as.factor(diff_ind), fill = as.factor(diff_ind))) +
+  geom_bar() + scale_y_sqrt() + 
+  labs(fill = "diff_ind", x = "Absolute difference of binary 'ind' features")
+
+p2 <- train %>% ggplot(aes(as.factor(diff_calc), fill = as.factor(diff_calc))) +
+  geom_bar() + scale_y_sqrt() +
+  labs(fill = "diff_calc", x = "Absolute difference of binary 'calc' features")
+
+p3 <- train %>% filter(diff_ind < 7) %>% group_by(diff_ind, target) %>%
+  count() %>% spread(target, n, fill = 0) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ungroup() %>%
+  ggplot(aes(diff_ind, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "Absolute difference of binary 'ind' features", y = "Claims [%]")
+
+p4 <- train %>% filter(diff_calc < 6) %>% group_by(diff_calc, target) %>%
+  count() %>% spread(target, n, fill = 0) %>%
+  mutate(frac_claim = `1`/(`1`+`0`)*100,
+         lwr = get_binCI(`1`,(`1`+`0`))[[1]]*100,
+         upr = get_binCI(`1`,(`1`+`0`))[[2]]*100) %>%
+  ungroup() %>%
+  ggplot(aes(diff_calc, frac_claim)) +
+  geom_point(color = "orange") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7, color = "orange") +
+  theme(legend.position = "none") +
+  labs(x = "Absolute difference of binary 'calc' features", y = "Claims [%]")
+
+layout <- matrix(c(1,2,3,4),2,2, byrow = T)
+multiplot(p1,p2,p3,p4,layout = layout)
 
 
 
