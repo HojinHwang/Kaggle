@@ -1198,7 +1198,44 @@ p4 <- train %>% filter(diff_calc < 6) %>% group_by(diff_calc, target) %>%
 layout <- matrix(c(1,2,3,4),2,2, byrow = T)
 multiplot(p1,p2,p3,p4,layout = layout)
 
+# Train vs test Compairson
+bin_col <- combine %>% select(ends_with("bin")) %>%
+  colnames() %>% unlist(use.names = F) %>% as.character() # use.naems = F : 벡터, 리스트 등에서의 이름을 보전하여 반환할지 여부 설정
 
+cat_col <- combine %>% select(ends_with("cat")) %>%
+  colnames() %>% unlist(use.names = F) %>% as.character()
+
+train_frac_bin <- NULL
+for (i in bin_col){
+  foo <- combine %>%
+    group_by(!!sym(i), dset) %>%
+    count() %>%
+    spread(dset, n, fill = 0) %>%
+    mutate(frac_train = train / (train+test)*100,
+           lwr = get_binCI(train, (train+test))[[1]]*100,
+           upr = get_binCI(train, (train+test))[[2]]*100)
+  train_frac_bin <- tibble(name = i,
+                           value = c(FALSE, TRUE),
+                           tfrac = c(foo$frac_train),
+                           lwr = c(foo$lwr),
+                           upr = c(foo$upr)) %>%
+    bind_rows(train_frac_bin)
+}
+
+plot_cat_train_test <- function(col){
+  col <- enquo(col) 
+  combine %>%
+    group_by(!!col, dset) %>%
+    count() %>%
+    spread(dset, n, fill = 0) %>%
+    mutate(frac_train = train/(train+test)*100,
+           lwr = get_binCI(train, (train+test))[[1]]*100,
+           upr = get_binCI(train, (train+test))[[2]]*100) %>%
+    ggplot(aes(col, frac_train)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7) +
+    labs(x = as.character(col)[2], y = "")
+}
 
 
 
