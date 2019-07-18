@@ -1237,6 +1237,93 @@ plot_cat_train_test <- function(col){
     labs(x = as.character(col)[2], y = "")
 }
 
+p1 <- combine %>% ggplot(aes(id, fill = dset)) +
+  geom_density(bw = 1, alpha = 0.5) +
+  coord_cartesian(ylim = c(7.3e-4, 8.3e-4))
+
+p2 <- train_frac_bin %>% ggplot(aes(name, tfrac, color = value)) +
+  geom_point() + geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.5, size = 0.7) +
+  labs(x = "Binary 'ind' features", y = "Training set percentage") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.9))
+  
+layout <- matrix(c(1,2), 2,1, byrow = T)
+multiplot(p1,p2,layout = layout)
+
+# str_c("p", seq(1, length(cat_col)), " <- plot_cat_train_test(", cat_col)
+p1 <- plot_cat_train_test(ps_ind_02_cat)
+p2 <- plot_cat_train_test(ps_ind_04_cat)
+p3 <- plot_cat_train_test(ps_ind_05_cat)
+p4 <- plot_cat_train_test(ps_car_01_cat)
+p5 <- plot_cat_train_test(ps_car_02_cat)
+p6 <- plot_cat_train_test(ps_car_03_cat)
+p7 <- plot_cat_train_test(ps_car_04_cat)
+p8 <- plot_cat_train_test(ps_car_05_cat)
+p9 <- plot_cat_train_test(ps_car_06_cat)
+p10 <- plot_cat_train_test(ps_car_07_cat)
+p11 <- plot_cat_train_test(ps_car_08_cat)
+p12 <- plot_cat_train_test(ps_car_09_cat)
+p13 <- plot_cat_train_test(ps_car_10_cat)
+p14 <- plot_cat_train_test(ps_car_11_cat)
+
+layout <- matrix(seq(1,14), 2,7, byrow = T)
+multiplot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,layout = layout)
+
+p1 <- combine %>% ggplot(aes(ps_reg_01, fill = dset)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p2 <- combine %>% ggplot(aes(ps_reg_02, fill = dset)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p3 <- combine %>% ggplot(aes(ps_reg_03, fill = dset)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p4 <- combine %>% ggplot(aes(ps_calc_01, fill = dset)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p5 <- combine %>% ggplot(aes(ps_calc_02, fill = dset)) +
+  geom_density(alpha = 0.5, bw = 0.05) +
+  theme(legend.position = "none")
+
+p6 <- combine %>% ggplot(aes(ps_calc_03, fill = dset)) +
+  geom_density(alpha = 0.5, bw = 0.05)
+
+layout <- matrix(c(1,2,3,4,5,6), 2,3 , byrow = T)
+multiplot(p1, p2, p3, p4, p5, p6, layout = layout)
+
+# Feature formatting
+combine <- combine %>% mutate_at(vars(ends_with("cat")), funs(as.integer)) %>%
+  mutate_at(vars(ends_with("bin")), funs(as.integer)) %>%
+  mutate(target = as.integer(levels(target))[target])
+
+# specific definitions:
+# predictor features
+
+ind_cols <- c("ps_ind_01","ps_ind_02_cat","ps_ind_03","ps_ind_04_cat","ps_ind_05_cat","ps_ind_06_bin","ps_ind_07_bin","ps_ind_08_bin",
+              "ps_ind_09_bin","ps_ind_10_bin","ps_ind_11_bin","ps_ind_12_bin","ps_ind_13_bin","ps_ind_14","ps_ind_15","ps_ind_16_bin",
+              "ps_ind_17_bin","ps_ind_18_bin")
+
+reg_cols <- c("ps_reg_01", "ps_reg_02", "ps_reg_03")
+
+car_cols <- c("ps_car_01_cat","ps_car_02_cat","ps_car_03_cat","ps_car_04_cat","ps_car_05_cat","ps_car_06_cat","ps_car_07_cat","ps_car_08_cat",
+              "ps_car_09_cat","ps_car_10_cat","ps_car_11_cat","ps_car_11","ps_car_12","ps_car_13","ps_car_14","ps_car_15")
+
+calc_cols <- c("ps_calc_01","ps_calc_02","ps_calc_03","ps_calc_04","ps_calc_05","ps_calc_06","ps_calc_07","ps_calc_08","ps_calc_09",
+               "ps_calc_10","ps_calc_11","ps_calc_12","ps_calc_13","ps_calc_14","ps_calc_15_bin","ps_calc_16_bin","ps_calc_17_bin",
+               "ps_calc_18_bin","ps_calc_19_bin","ps_calc_20_bin")
+
+eng_cols <- c("nano", "bin_ind", "bin_calc", "diff_ind", "diff_calc")
+
+train_cols <- c(ind_cols, reg_cols, car_cols, eng_cols)
+
+# target feature
+y_col <- c("target")
+
+# identification feature
+id_col <- c("id")
 
 
 
