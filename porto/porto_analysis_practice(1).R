@@ -1325,6 +1325,77 @@ y_col <- c("target")
 # identification feature
 id_col <- c("id")
 
+# auxilliary features
+aux_cols <- c("dset")
+
+test_id <- combine %>% filter(dset == "test") %>%
+  select(!!sym(id_col))
+
+cols <- c(train_cols, y_col, aux_cols)
+combine <- combine %>% select_(.dots = cols)
+
+train <- combine %>% filter(dset == "traim") %>%
+  select_(.dots = str_c("-", c(aux_cols)))
+
+test <- combine %>% filter(dset == "test") %>%
+  select_(.dots = str_c("-", c(aux_cols)))
+
+xgb_normalizedgini <- function(preds, dtrain){
+  actual <- getinfo(dtrain, "label")
+  score <- NormalizedGini(preds, actual)
+  return(list(metric = "NormalizedGini", value = score))
+}
+
+set.seed(4321)
+trainIndex <- createDataPartition(train$target, p = 0.8, list = FALSE, times = 1)
+
+train <- train[trainIndex,]
+valid <- train[-trainIndex,]
+
+# XGBoost parameters and fitting
+# convert to XGB matrix
+foo <- train %>% select(-target)
+bar <- train %>% select(-target)
+
+dtrain <- xgb.DMatrix(as.matrix(foo), label = train$target)
+dvalid <- xgb.DMatrix(as.matrix(bar), label = valie$target)
+dtest <- xgb.DMatrix(as.matrix(test))
+
+xgb_params <- list(colsample_bytree = 0.7, # variables per tree
+                   subsample = 0.7, # data subset per tree
+                   booster = "gbtree", 
+                   max_depth = 5, # tree levels
+                   eta = 0.3, # shrinkage
+                   eval_metric = xgb_normalizedgini,
+                   objective = "reg:logisitic",
+                   seed = 4321,
+                   nthread = -1)
+
+watchlist <- list(train = dtrain, valid = dvalid)
+
+set.seed(1234)
+xgb_cv <- xgb.cv(xgb_params, dtrain, early_stopping_rounds = 5, nfold = 5, nrounds = 50, maximize = T)
+
+set.seed(4321)
+gb_dt <- xgb.train(params = xgb_params,
+                   data = dtrain,
+                   print_every_n = 5,
+                   watchlist = watchlist,
+                   nrounds = xgb_cv$best_iteration)
+
+# Feature importance
+imp_matrix <- as.tibble(xgb.importance(feature_names = colnames(train %>% select(-target)), model = gb_dt))
+
+imp_matrix <- ggplot(aes(reorder(Feature, Gain, FUN = max), Gain, fill = Feature)) +
+  geom_col() + coord_flip() + theme(legend.position = "none") + labs(x = "Features", y = "Importance")
+
+pred <- test_id %>% mutate(target = predict(gb_dt, dtest))
+pred %>% write.csv('submit.csv')
+
+identical(dim(sample_submit), dim(pred))
+glimpse(sample_submit)
+glimpse(pred)
+bind_cols(sample_submit, pred) %>% head(5)
 
 
 
