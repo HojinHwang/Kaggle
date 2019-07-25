@@ -250,35 +250,42 @@ plot_two_way(df = df, line = "target", factor1 = "ps_car_03_cat", factor2 = "ps_
 df$ps_car_0315 <- df$ps_car_03_cat * (1+df$ps_car_15_t.lt14)
 plot_one_way(df = df, lines = "target", factor = "ps_car_0315")
 
+plot_two_way(df = df, line = "target", factor1 = "ps_car_03_cat", factor2 = "ps_ind_17_bin")
+plot_two_way(df = df, line = "target", factor1 = "ps_car_03_cat", factor2 = "ps_ind_17_bin", rescale = T)
+df$ps_car_03_ind_17 <- (df$ps_car_03_cat == -1) * df$ps_ind_17_bin
 
+plot_one_way(df = df, lines = "target", factor = "ps_reg_01")
+plot_one_way(df = df, lines = "target", factor = "ps_reg_02")
 
+plot_two_way(df = df, line = "target", factor1 = "ps_reg_02", factor2 = "ps_ind_05_cat.000")
+plot_two_way(df = df, line = "target", factor1 = "ps_reg_02", factor2 = "ps_ind_05_cat.000", rescale = T)
+df$ps_reg_02_ind_05 <- ifelse(df$ps_ind_05_cat.000 == 1, -1, df$ps_reg_02)
+plot_one_way(df = df, lines = "target", factor = "ps_reg_02_ind_05")
 
+df$ps_reg_03_t <- ifelse(df$ps_reg_03 == -1, -1, round(16*df$ps_reg_03^2, 5))
+df$ps_reg_03_t_grp <- cut(df$ps_reg_03_t, breaks = c(-Inf, -1, quantile(df$ps_reg_03_t[df$ps_reg_03_t != -1], probs = 1:20 / 20)))
+plot_one_way(df = df, lines = "target", factor = "ps_reg_03_t_grp")
 
+df$ps_reg_01_t <- ifelse(df$ps_reg_01 == 0, 1, df$ps_reg_01)
+df$ps_car_02_cat_t <- 1 - pmax(df$ps_car_02_cat, 0)
+plot_two_way(df = df, line = "target", factor1 = "ps_reg_01_t", factor2 = "ps_car_02_cat_t")
+plot_two_way(df = df, line = "target", factor1 = "ps_reg_01_t", factor2 = "ps_car_02_cat_t", rescale = T)
+df$ps_reg_01_car_02_cat <- paste(df$ps_car_02_cat_t, df$ps_reg_01_t, sep = "_")
+plot_one_way(df = df, lines = "target", factor = "ps_reg_01_car_02_cat")
 
+df$ps_car_04_cat_t <- pmin(df$ps_car_04_cat, 1)
+plot_two_way(df = df, line = "target", factor1 = "ps_reg_01_t", factor2 = "ps_car_04_cat_t")
 
+plot.vars <- colnames(df)[which(colnames(df) == "ps_ind_01"): which(colnames(df) == "ps_calc_20_bin")] # ps_ind_01 ~ ps_calc_20_bin 까지
+df.plot <- df[,c("target", plot.vars)]
+for(var in plot.vars){
+  if(length(unique(df.plot[,var])) > 50){
+    df.plot[,var] <- cut(df.plot[,var], c(-Inf, unique(quantile(df.plot[,var], probs = 1:49 / 50)), Inf))
+  }
+  print(plot_one_way(df = df, lines = "target", factor = var))
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+head(df.plot)
 
 
 
