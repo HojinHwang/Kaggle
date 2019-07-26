@@ -194,6 +194,113 @@ pca_df <- setDT(pca_df)[order (rotation.PC1, decreasing = T)]
 # The scree plot is used to determine the number of components and the variability
 fviz_eig(pcaObject)
 
+nzv <- nearZeroVar(dt1, saveMetrics = T)
+nzv <- index_to_col(nzv, "Column")
+nzv_tb <- setDT(nzv)[nzv == TRUE | zeroVar == TRUE]
+nzv_tb[sample(1:nrow(nzv_tb), size = nrow(nzv_tb)),] %>% datatable(filter = 'top', options = list(
+  pageLength = 15, autoWidth = T))
+
+# Saving columns with nzv
+rm_col_nzv <- as.character(setDT(nzv)[nzv == T | zeroVar == T]$Column)
+
+df_corr <- cor(dt1_num2, use = "pairwise.complete.obs")
+hc = findCorrelation(df_corr, cutoff = 0.80) # 0.8 이상의 상관계수 값을 찾는다.
+hc = sort(hc)
+dt1_num3 <- as.data.frame(dt1_num2)[,-c(hc)]
+
+rm_col_hc <- setdiff(colnames(dt1_num2), colnames(dt1_num3))
+rm_col_hc # 상관계수가 0.8 이상인 변수들
+
+df_corr2 <- df_corr %>% as.data.frame() %>% mutate(var1 = rownames(.)) %>%
+  gather(var2, value, -var1) %>% arrange(desc(value)) %>% group_by(value)
+
+corr_tb <- setDT(df_corr2)[abs(value) > 0.8 & var1 != var2 & var1 != "Tt1_Rating" & var2 != "Tt1_Rating"]
+corr_tb <- corr_tb[!duplicated(corr_tb$value),]
+
+l1 <- corr_tb$var1
+l2 <- corr_tb$var2
+
+corr_tb[sample(1:nrow(corr_tb), size = nrow(corr_tb)), ] %>% datatable(filter = 'top', options = list(
+  pageLength = 15, autoWidth = T))
+
+# Scatter Plots(Highly Correlated Variables)
+doPlotsCorr(dt1_num2, plotCorr, l1, l2, 1:6)
+doPlotsCorr(dt1_num2, plotCorr, l1, l2, 13:27)
+doPlotsCorr(dt1_num2, plotCorr, l1, l2, 71:83)
+doPlotsCorr(dt1_num2, plotCorr, l1, l2, 58:70)
+
+# Removing all the columns identified as highly correlated and/or nzv
+rm_col_all <- append(rm_col_hc, rm_col_nzv)
+dt1_tran <- as.data.frame(dt1_tran)[, !colnames(dt1_tran) %in% rm_col_all]
+
+doPlots(dt1_num2, plotDen, ii = 1:20)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
