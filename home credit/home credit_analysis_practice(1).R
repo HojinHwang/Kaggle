@@ -59,7 +59,7 @@ doPlotsCorr <- function(data_in, fun, list1, list2, ii, ncol = 3){
 plotDen <- function(data_in, i){
   data <- data.frame(x = data_in[[i]])
   p <- ggplot(data = data, aes(x = x)) + geom_density(aes(group = as.factor(dt1_tran$TARGET), color = as.factor(dt1_tran$TARGET),
-                                                          fill = as.factor(dt_1tran$TARGET), alpha = 0.2)) +
+                                                          fill = as.factor(dt1_tran$TARGET), alpha = 0.2)) +
     xlab(colnames(data_in)[i]) + theme_light() +
     theme(axis.text = element_text(angle = 90, hjust = 1)) + theme(legend.position = "none")
   return(p)
@@ -233,12 +233,20 @@ doPlotsCorr(dt1_num2, plotCorr, l1, l2, 58:70)
 rm_col_all <- append(rm_col_hc, rm_col_nzv)
 dt1_tran <- as.data.frame(dt1_tran)[, !colnames(dt1_tran) %in% rm_col_all]
 
+# Recreate numeric list with new dt1_tran
+numeric_list <- unlist(lapply(dt1_tran, is.numeric))
+dt1_num <- setDT(dt1_tran)[,..numeric_list]
+
 doPlots(dt1_num2, plotDen, ii = 1:20)
+doPlots(dt1_num2, plotDen, ii = 21:40)
 
+non_numeric_list <- unlist(lapply(dt1_tran, is.character))
+dt1_non_num <- setDT(dt1_tran)[,..non_numeric_list]
 
-
-
-
+# BarPlot of the categorial and Target Variable
+doPlots(dt1_non_num, plotBar, ii = 1:9)
+doPlots(dt1_non_num, plotBar, ii = c(9, 11, 13:16))
+grid.arrange(plotBar(dt1_non_num, 10), plotBar(dt1_non_num, 12), ncol = 1, nrow = 2)
 
 
 
