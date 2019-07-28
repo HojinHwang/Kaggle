@@ -248,39 +248,76 @@ doPlots(dt1_non_num, plotBar, ii = 1:9)
 doPlots(dt1_non_num, plotBar, ii = c(9, 11, 13:16))
 grid.arrange(plotBar(dt1_non_num, 10), plotBar(dt1_non_num, 12), ncol = 1, nrow = 2)
 
+# Attaching numeric and non numeric columns
+dt1_preproc <- cbind(dt1_non_num, dt1_num)
+mv <- as.data.frame(apply(dt1_preproc, 2, function(col)sum(is.na(col)) / length(col))) # 결측값 비율 확인
+colnames(mv)[1] <- "missing_values"
+mv <- index_to_col(mv, 'Column')
+mv <- setDT(mv)[order(missing_values, decreasing = T)]
+
+ggplot(mv[1:40,], aes(reorder(Column, missing_values), missing_values)) + geom_bar(position = position_dodge(), stat = "identity") +
+  coord_flip() + xlab('Columns') + ylab('Missing Values %')
+
+dt1_preproc <- na.aggregate(dt1_preproc)
+View(dt1_preproc)
 
 
+## Over fitting and Model Tuning
+# The simplest way to split the data into a training and test set is to take a random sample
 
+set.seed(1234)
+dt1_preproc_sample <- setDT(dt1_preproc)[sample(nrow(dt1_preproc), round(nrow(dt1_preproc)*0.01, 0)),]
 
+# control <- rfeControl(functions = rfFuncs, method = "cv", number = 3)
+# trainctrl <- trainControl(classProbs = T, summaryFunction = twoClassSummary)
+# results <- rfe(as.data.frame(dt1_preproc_sample)[,-c(153)],
+#                             as.data.frame(dt1_preproc_sample)[,c(153)],
+#                             sizes = c(1:100),
+#                             rfeControl = control, method = "rf", metric = "AUC", trControl = trainctrl)
+# print(results)
+# predictors(results)
+# plot(results, type = c("g", "o"))
 
+# boruta.train <- Boruta(TARGET ~., data = dt1_preproc, doTrace = 2)
+# print(boruta.train)
 
+# cols_to_keep <- c(predictors(results), "TARGET")
+cols_to_keep <- c('FLAG_OWN_CARN','`ORGANIZATION_TYPEIndustry: type 1`','DAYS_ID_PUBLISH','SK_ID_CURR','REG_CITY_NOT_LIVE_CITY',
+                  'YEARS_BEGINEXPLUATATION_MODE','COMMONAREA_MODE','FLOORSMAX_MODE','LIVINGAPARTMENTS_MODE','YEARS_BUILD_MEDI',
+                  'CODE_GENDERM','OCCUPATION_TYPEWaiters/barmen staff','TARGET','EXT_SOURCE_1','EXT_SOURCE_2','EXT_SOURCE_3')
+dt1_preproc_sample <- as.data.frame(dt1_preproc_sample)[,(colnames(dt1_preproc_sample) %in% cols_to_keep)]
 
+# Creating a Data Partition for Training and Testing
+predictors <- setDT(dt1_preproc_sample)[, -c('TARGET')]
+classes <- as.factor(dt1_preproc_sample$TARGET)
+trainingRows <- createDataPartition(y = classes, p = 0.8, list = F)
+trainPredictors <- predictors[trainingRows,]
+trainclasses <- classes[trainingRows]
+testPredictors <- predictors[-trainingRows,]
+testClasses <- classes[-trainingRows]
 
+cvSplits <- createFolds(trainclasses, k = 10, returnTrain = T)
+repeatedSplits <- createDataPartition(trainclasses, p = 0.8, times = 3)
 
+# the Bootstrap : A bootstrap sample is a random sample of the data taken with replacement. 
+bsSplits <- createResample(trainclasses, times = 10, list = T)
 
+# Running a Simple model
+dt1_preproc_sample <- mutate(dt1_preproc_sample, TARGET = ifelse(TARGET == 0, 'Yes', "No"))
+dt1_preproc_sample$TARGET <- as.factor(dt1_preproc_sample$TARGET)
 
+inTrain <- createDataPartition(dt1_preproc_sample$TARGET, p = .8)[[1]]
+dtTrain <- dt1_preproc_sample[ inTrain, ]
+dtTest <- dt1_preproc_sample[ -inTrain, ]
 
+traincntrl <- trainControl(method = 'repeatedcv',
+                           number = 5,
+                           repeats = 2,
+                           classProbs = TRUE, 
+                           sampling = "down",
+                           summaryFunction = twoClassSummary)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+trainPredictors <- as.matrix(trainPredictors)
 
 
 
