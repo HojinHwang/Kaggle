@@ -350,9 +350,176 @@ knnFit <- train(TARGET ~.,
 knnFit$results
 
 # Running a SVM model
-svmFit <- train(TARGET ~., data = dtTrain, method = "svmRadial",
+svmFit <- train(TARGET ~., 
+                data = dtTrain,
+                method = 'svmRadial',
                 preProc = c('center', 'scale'),
-                tuneLength = 7 , trControl = trainctrl)
+                tuneLength = 7,
+                trControl = traincntrl)
+svmFit
+
+plot(svmFit, scales = list(x = list(log = 2)))
+predictClasses <- predict(svmFit, dtTest)
+predictProbs <- predict(svmFit, newdata = dtTest, type = "prob")
+
+svmFit
+# svmFit$results %>% mutate(accuracySD_low = Accuracy - 2*(AccuracySD / sqrt(svmFit$control$number * svmFit$control$repeats)),
+                          accuracySD_high = Accuracy + 2*(AccuracySD / sqrt(svmFit$control$number * svmFit$control$repeats))) %>%
+#  ggplot(aes(x = C)) +
+#  geom_line(aes(y = Accuracy)) +
+#  geom_point(aes(y = Accuracy)) + theme_classic() +
+#  scale_x_log10() + # correct spacing of the cost parameter
+#  ylim(0.5, 0.7) +
+#  geom_errorbar(aes(ymin = accuracySD_low, ymax = accuracySD_high), colour = "gray50", width = .1) +
+#  labs(title = "Estimates of prediction accuracy\nwith 2 SD error bars")
+
+# Comparing SVM, Logistic Regrresion and KNN
+logisticReg <- train(TARGET ~., 
+                     data = dtTrain,
+                     method = 'glm',
+                     trControl = traincntrl)
+
+resamp <- resamples(list(SVM = svmFit, Logistic = logisticReg, KNN = knnFit))
+summary(resamp)
+
+svmFitLinear <- train(TARGET ~.,
+                      data = dtTrain,
+                      method = 'svmLinear',
+                      preProc = c('center', 'scale'),
+                      metric = "ROC",
+                      tuneLength = 7,
+                      trControl = traincntrl)
+
+# Comparing all the SVM models
+resamp <- resamples(list(SVM_Radila = svmFit, SVM_Linear = svmFitLinear))
+summary(resamp)
+
+knnFit <- train(TARGET ~ .,
+                data = dtTrain,
+                method = "knn",
+                preProc = c("center", "scale"),
+                metric = "ROC",
+                tuneGrid = data.frame(.k = 1:20),
+                trControl = traincntrl)
+knnFit$results
+
+dtTest$svmFitLinearclass <- predict(svmFitLinear, dtTest)
+dtTest$svmFitLinearprobs <- predict(svmFitLinear, newdata = dtTest, type = "prob")
+
+dtTest$logclass <- predict(logisticReg, dtTest)
+dtTest$logprobs <- predict(logisticReg, newdata = dtTest, type = "prob")
+
+calCurve <- calibration(TARGET ~ svmFitLinearprobs[,1] + logprobs[,1], data = dtTest)
+calCurve
+
+confusionMatrix(data = dtTest$svmFitLinearclass,
+                reference = dtTest$TARGET,
+                positive = "Yes")
+
+confusionMatrix(data = dtTest$logclass,
+                reference = dtTest$TARGET,
+                positive = "Yes")
+
+
+library(pROC)
+rocCurve <- roc(response = dtTest$TARGET, predictor = dtTest$svmFitLinearprobs[,1], levels = rev(levels(dtTest$TARGET)))
+plot(rocCurve, legacy.axes = T) # legacy.axes = 축 변경 ?
+auc(rocCurve)
+
+rocCurve <- roc(response = dtTest$TARGET, predictor = dtTest$logprobs[,1], levels = rev(levels(dtTest$TARGET)))
+plot(rocCurve, legacy.axes = T)
+auc(rocCurve)
+
+dtFitCART <- train(x = setDT(dtTrain)[,-c('TARGET')],
+                   y = dtTrain$TARGET,
+                   method = 'rpart',
+                   preProc = c('center', 'scale'),
+                   tuneLength = 7,
+                   metric = "ROC",
+                   trControl = traincntrl)
+
+dtFitBagged <- train(x = setDT(dtTrain)[,-c('TARGET')],
+                     y = dtTrain$TARGET,
+                     method = "treebag",
+                     preProc = c('center', 'scale'),
+                     tuneLength = 7,
+                     metric = "ROC",
+                     trControl = traincntrl)
+
+dtFitrf <- train(x = setDT(dtTrain)[,-c('TARGET')],
+                     y = dtTrain$TARGET,
+                     method = "rf",
+                     preProc = c('center', 'scale'),
+                     tuneLength = 7,
+                     metric = "ROC",
+                     trControl = traincntrl)
+
+dtFitAdaBoost <- train(x = setDT(dtTrain)[,-c('TARGET')],
+                     y = dtTrain$TARGET,
+                     method = "adaboost",
+                     preProc = c('center', 'scale'),
+                     tuneLength = 7,
+                     metric = "ROC",
+                     trControl = traincntrl)
+
+dtFitXGBoost <- train(x = setDT(dtTrain)[,-c('TARGET')],
+                     y = dtTrain$TARGET,
+                     method = "xgbtree",
+                     preProc = c('center', 'scale'),
+                     tuneLength = 7,
+                     metric = "ROC",
+                     trControl = traincntrl)
+
+dtFitC5.0 <- train(x = setDT(dtTrain)[,-c('TARGET')],
+                     y = dtTrain$TARGET,
+                     method = "C5.0",
+                     preProc = c('center', 'scale'),
+                     tuneLength = 7,
+                     metric = "ROC",
+                     trControl = traincntrl)
+
+alltreemodels <- resamples(list(CART = dfFitCART,
+                                Bagged = dtFitBagged,
+                                RF = dtFitrf,
+                                AdaBoost = dtFitAdaBoost,
+                                XGBoost = dtFitXGBoost,
+                                C5.0 = dtFitC5.0))
+summary(alltreemodels)
+
+dtTest$C5.0class <- predict(dtFit5.0, dtTest)
+dtTest$C5.0probs <- predict(dtFit5.0, newdata = dtTest, type = "prob")
+
+confusionMatrix(data = dtTest$C5.0class,
+                reference = dtTest$TARGET,
+                positive = "Yes")
+
+# Make test predictions
+lgb_pred <- predict(dtFitXGBoost, data = data.frame(test), n = dtFitXGBoost[1])
+result <- data.frame(SK_ID_CURR = Id, TARGET = lgb_pred)
+write.csv(result, "LGBM.csv", row.names = F)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
