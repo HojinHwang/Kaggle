@@ -61,9 +61,23 @@ feature_list = c(
 # Matrix to store our new features
 new_features_integer = data.frame(matrix(ncol = length(feature_list), nrow = nrow(full)))
 
+# Cycle through and reverse the OHE process for these
 
+ohe_names = vector()
 
+for(i in 1:length(feature_list)){
+  # Grab the feature
+  feature_to_fix = full %>% select(starts_with(feature_list[i]))
+  
+  # Fix and enter into our new feature matrix
+  new_features_integer[, i] = as.integer(factor(names(feature_to_fix)[max.col(feature_to_fix)], 
+                                                ordered = F))
+  names(new_features_integer)[i] = paste0(feature_list[i], "_int")
+  
+  ohe_names = c(ohe_names, as.vector(names(feature_to_fix)))
+}
 
+head(new_features_integer)
 
 
 
